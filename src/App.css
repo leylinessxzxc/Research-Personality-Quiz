@@ -1,0 +1,71 @@
+
+/* General container styling */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #002b5c; /* Dark blue background */
+  font-family: "Times New Roman", Times, serif; /* Set font to Times New Roman */
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
+  text-align: center;
+}
+
+/* White box for questions and answers */
+.card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Dark background for question and choices */
+.dark-bg {
+  background-color: #003366; /* Darker blue for contrast */
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+/* White text styling */
+.white-text, h2, p {
+  color: white;
+}
+
+/* Button styling */
+.btn {
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  margin: 5px;
+}
+
+.btn-outline-primary {
+  background-color: #0056b3;
+  color: white;
+  border-color: #0056b3;
+}
+
+.btn-outline-primary:hover {
+  background-color: #004494;
+  color: white;
+}
+
+/* Logo styling */
+.logo {
+  font-size: 2.5rem;
+  color: white;
+  margin-bottom: 20px;
+}
