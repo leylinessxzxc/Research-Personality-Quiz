@@ -1,103 +1,120 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Link } from "react-router-dom";
+import "./App.css";
 
-const questions = [
-  { question: "Do you prefer working with numbers or narratives?", options: ["Numbers", "Narratives", "Both"] },
-  { question: "Are you more interested in statistical analysis or exploring human experiences?", options: ["Statistical Analysis", "Human Experiences", "Both"] },
-  { question: "Do you prefer structured data collection methods or open-ended exploration?", options: ["Structured", "Open-ended", "A mix of both"] },
-  { question: "Do you enjoy working with large datasets?", options: ["Yes", "No", "Sometimes"] },
-  { question: "Would you rather conduct experiments or interviews?", options: ["Experiments", "Interviews", "Both"] },
-  { question: "Do you find mathematical models and equations appealing?", options: ["Yes", "No", "Somewhat"] },
-  { question: "Are you more comfortable with surveys or case studies?", options: ["Surveys", "Case Studies", "Both"] },
-  { question: "Do you prefer proving hypotheses or discovering new patterns?", options: ["Proving Hypotheses", "Discovering Patterns", "Both"] },
-  { question: "Would you rather analyze trends or study individual behaviors?", options: ["Trends", "Individual Behaviors", "Both"] },
-  { question: "Are you more inclined towards objective data or subjective insights?", options: ["Objective", "Subjective", "A mix of both"] },
+const researchQuestions = [
+  { question: "Do you prefer working independently or collaboratively?", options: ["Independently", "Collaboratively", "Both", "Neither", "Depends on the project"] },
+  { question: "Are you more comfortable with numerical analysis or qualitative interpretation?", options: ["Numerical Analysis", "Qualitative Interpretation", "Both", "Neither", "Context-based"] },
+  { question: "Do you enjoy researching past studies or conducting your own experiments?", options: ["Past Studies", "Own Experiments", "Both", "Neither", "Combination"] },
+  { question: "Do you prefer working with numbers or narratives?", options: ["Numbers", "Narratives", "Both", "Neither", "Depends on the context"] },
+  { question: "Are you more interested in statistical analysis or exploring human experiences?", options: ["Statistical Analysis", "Human Experiences", "Both", "Neither", "A blend of both"] },
+  { question: "Do you prefer structured data collection methods or open-ended exploration?", options: ["Structured", "Open-ended", "A mix of both", "Neither", "Flexible approach"] },
+  { question: "Do you enjoy working with large datasets?", options: ["Yes", "No", "Sometimes", "Rarely", "Depends on the purpose"] },
+  { question: "Would you rather conduct experiments or interviews?", options: ["Experiments", "Interviews", "Both", "Neither", "Combination of both"] }
+];
+
+const studyHabitQuestions = [
+  { question: "How often do you take breaks while studying?", options: ["Every hour", "Occasionally", "Rarely", "Never", "Only when tired"] },
+  { question: "Do you use digital tools to organize your study materials?", options: ["Always", "Sometimes", "Rarely", "Never", "Only during exams"] },
+  { question: "Do you prefer visual aids like diagrams and charts or text-based notes?", options: ["Visual Aids", "Text-Based", "Both", "Neither", "Depends on the topic"] },
+  { question: "How often do you review your notes after class?", options: ["Daily", "Weekly", "Before exams", "Rarely", "Never"] },
+  { question: "Do you prefer studying alone or with a group?", options: ["Alone", "Group", "Depends on the subject", "No preference", "Both"] },
+  { question: "How do you usually take notes?", options: ["Typed", "Handwritten", "Voice recordings", "Summarized", "Detailed"] },
+  { question: "Do you follow a strict study schedule?", options: ["Always", "Sometimes", "Rarely", "Never", "Only during exams"] },
+  { question: "What study environment do you prefer?", options: ["Quiet", "Background music", "Coffee shop", "Library", "At home"] }
 ];
 
 const researchTypes = {
-  quantitative: ["Numbers", "Statistical Analysis", "Structured", "Yes", "Experiments", "Yes", "Surveys", "Proving Hypotheses", "Trends", "Objective"],
-  qualitative: ["Narratives", "Human Experiences", "Open-ended", "No", "Interviews", "No", "Case Studies", "Discovering Patterns", "Individual Behaviors", "Subjective"],
-  mixed: ["Both", "Both", "A mix of both", "Sometimes", "Both", "Somewhat", "Both", "Both", "Both", "A mix of both"],
-  experimental: ["Numbers", "Statistical Analysis", "Open-ended", "No", "Experiments", "Somewhat", "Surveys", "Discovering Patterns", "Trends", "A mix of both"],
+  quantitative: ["Numbers", "Statistical Analysis", "Structured", "Yes", "Experiments"],
+  qualitative: ["Narratives", "Human Experiences", "Open-ended", "No", "Interviews"],
+  mixed: ["Both", "Both", "A mix of both", "Sometimes", "Both"],
+  experimental: ["Numbers", "Statistical Analysis", "Open-ended", "No", "Experiments"]
 };
 
 export default function ResearchQuiz() {
+  const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
-  const [result, setResult] = useState(null);
-  const [started, setStarted] = useState(false);
-  const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [showResult, setShowResult] = useState(false);
+  const [showTitle, setShowTitle] = useState(true);
+  const [isStudyHabits, setIsStudyHabits] = useState(false);
+  const [researchType, setResearchType] = useState("");
+  const [resultHistory, setResultHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const startQuiz = () => {
-    setShuffledQuestions([...questions].sort(() => Math.random() - 0.5));
-    setStarted(true);
+  useEffect(() => {
+    const savedResults = JSON.parse(localStorage.getItem("resultHistory")) || [];
+    setResultHistory(savedResults);
+  }, []);
+
+  const saveResult = (type) => {
+    const updatedResults = [...resultHistory, { type, date: new Date().toLocaleString() }];
+    setResultHistory(updatedResults);
+    localStorage.setItem("resultHistory", JSON.stringify(updatedResults));
   };
+
+  const startQuiz = () => setShowTitle(false);
 
   const handleAnswer = (answer) => {
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
-
-    if (newAnswers.length === questions.length) {
-      const scores = { quantitative: 0, qualitative: 0, mixed: 0, experimental: 0 };
-      newAnswers.forEach(answer => {
-        Object.keys(researchTypes).forEach(type => {
-          if (researchTypes[type].includes(answer)) {
-            scores[type] += 1;
-          }
-        });
-      });
-
-      const bestMatch = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
-      const resultMap = {
-        quantitative: "Quantitative Research",
-        qualitative: "Qualitative Research",
-        mixed: "Mixed Methods Research",
-        experimental: "Experimental Research",
-      };
-
-      setResult(resultMap[bestMatch] || "Your research style is unique!");
+    setIndex(index + 1);
+    const currentQuestions = getCurrentQuestions();
+    if (newAnswers.length === currentQuestions.length) {
+      setShowResult(true);
+      determineResearchType(newAnswers);
     }
   };
 
-  const restartQuiz = () => {
+  const determineResearchType = (answers) => {
+    const scores = { quantitative: 0, qualitative: 0, mixed: 0, experimental: 0 };
+    answers.forEach((answer) => {
+      Object.keys(researchTypes).forEach((type) => {
+        if (researchTypes[type].includes(answer)) scores[type]++;
+      });
+    });
+    const maxType = Object.keys(scores).reduce((a, b) => (scores[a] > scores[b] ? a : b));
+    const finalType = maxType.charAt(0).toUpperCase() + maxType.slice(1);
+    setResearchType(finalType);
+    saveResult(finalType);
+  };
+
+  const resetQuiz = () => {
+    setIndex(0);
     setAnswers([]);
-    setResult(null);
-    setStarted(false);
-    setShuffledQuestions([]);
+    setShowResult(false);
+    setShowTitle(true);
+    setResearchType("");
+  };
+
+  const toggleQuizType = (event) => {
+    setIsStudyHabits(event.target.value === "studyHabits");
+    resetQuiz();
+  };
+
+  const toggleHistory = () => setShowHistory(!showHistory);
+
+  const getCurrentQuestions = () => {
+    return isStudyHabits ? studyHabitQuestions : researchQuestions;
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center vh-100" style={{ backgroundColor: "#f5f5f5", backgroundImage: "url('/notebook-lines.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
-      <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
-        <motion.div className="card p-4 shadow-lg text-center" style={{ maxWidth: "500px", width: "100%", margin: "auto" }}>
-          <div className="card-body">
-            {!started ? (
-              <motion.div>
-                <h1>Welcome to the Research Quiz</h1>
-                <p>Find out what type of research best suits you based on your preferences!</p>
-                <motion.button onClick={startQuiz}>Start Quiz</motion.button>
-              </motion.div>
-            ) : result ? (
-              <motion.div>
-                <h2>You are suited for:</h2>
-                <p>{result}</p>
-                <motion.button onClick={restartQuiz}>Retry</motion.button>
-                <Link to="/definitions" className="btn btn-info mt-3">See Definitions</Link>
-              </motion.div>
-            ) : (
-              <motion.div>
-                <h2>Question {answers.length + 1} of {shuffledQuestions.length}</h2>
-                <p>{shuffledQuestions[answers.length].question}</p>
-                {shuffledQuestions[answers.length].options.map((option) => (
-                  <motion.button key={option} onClick={() => handleAnswer(option)}>{option}</motion.button>
-                ))}
-              </motion.div>
-            )}
-          </div>
-          <footer className="text-center mt-4">Programmed by Leigh Ellis M. Velasco from 12 - STEM B<br />For Research Capstone Purposes</footer>
-        </motion.div>
-      </div>
+    <div className="container">
+      {showHistory ? (
+        <div>
+          <h2>Quiz Results History</h2>
+          <ul>
+            {resultHistory.map((result, idx) => (
+              <li key={idx}>{result.type} - {result.date}</li>
+            ))}
+          </ul>
+          <button onClick={toggleHistory} className="btn btn-secondary">Back</button>
+        </div>
+      ) : (
+        <div>
+          <button onClick={toggleHistory} className="btn btn-info">View Results History</button>
+        </div>
+      )}
     </div>
   );
 }
